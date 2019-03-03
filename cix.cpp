@@ -9,6 +9,7 @@ using namespace std;
 
 #include <libgen.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
 
@@ -25,7 +26,9 @@ unordered_map<string,cix_command> command_map {
    {"exit", cix_command::EXIT},
    {"help", cix_command::HELP},
    {"ls"  , cix_command::LS  },
-   {"get" , cix_command::GET }
+   {"get" , cix_command::GET },
+   {"put" , cix_command::PUT },
+   {"rm"  , cix_command::RM  }
 };
 
 static const string help = R"||(
@@ -63,6 +66,7 @@ void cix_ls (client_socket& server) {
 void cix_get(client_socket& server, string filename)
 {
     cix_header header;
+    memset(&header, 0, sizeof(header));
     header.command = cix_command::GET;
     memcpy(header.filename, filename.c_str(), filename.size());
     header.nbytes = 0;
@@ -77,14 +81,17 @@ void cix_get(client_socket& server, string filename)
     }
     else
     {
-        if (!strcmp(filename.c_str(), header.filename))
+        if (strcmp(filename.c_str(), header.filename) != 0)
         {
             log << "filename mismatch" << endl;
         }
         else
         {
             unique_ptr<char, deleter> buffer { new char[header.nbytes], free};
-            recv_packet(server, buffer.get(), header.nbytes);
+            if (header.nbytes != 0)
+            {
+                recv_packet(server, buffer.get(), header.nbytes);
+            }
             log << "received" << header.nbytes << " bytes" << endl;
             ofstream file(filename);
             file.write(buffer.get(), header.nbytes);
@@ -92,6 +99,67 @@ void cix_get(client_socket& server, string filename)
             file.close();
         }
     }
+}
+
+void cix_put(client_socket& server, string filename)
+{
+    cix_header header;
+    memset(&header, 0, sizeof(header));
+    header.command = cix_command::PUT;
+    memcpy(header.filename, filename.c_str(), filename.size());
+    ifstream file(header.filename);
+    if (!file.is_open())
+    {
+        return;
+    }
+    struct stat california;
+    if(stat(header.filename, &california) != 0)
+    {
+        log << "failed to get file stat" << endl;
+        file.close();
+        return;
+    }
+    header.nbytes = california.st_size;
+    char* buffer = new char[header.nbytes];
+    file.read(buffer,header.nbytes);
+    file.close();
+    if (!file)
+    {
+        log << "failed to read enough bytes" << endl;
+        delete[] buffer;
+        return;
+    }
+    server.send(&header, sizeof(cix_header));
+    log << "sent header" << endl;
+    server.send(buffer, header.nbytes);
+    log << "sent " << header.nbytes << " bytes" << endl;
+    delete[] buffer;
+    server.recv(&header, sizeof(cix_header));
+    if (header.command != cix_command::ACK)
+    {
+        log << "the server was mean" << endl;
+    }
+    log << "file successfully transfered" << endl;
+    // done
+}
+
+void cix_rm(client_socket& server, string filename)
+{
+    cix_header header;
+    memset(&header, 0, sizeof(header));
+    header.command = cix_command::RM;
+    memcpy(header.filename, filename.c_str(), filename.size());
+    server.send(&header, sizeof(cix_header));
+    server.recv(&header, sizeof(cix_header));
+    if (header.command != cix_command::ACK)
+    {
+        log << "server didn't do the thing" << endl;
+    }
+    else
+    {
+        log << "server did do the thing :D" << endl;
+    }
+    //done
 }
 
 
@@ -125,7 +193,6 @@ int main (int argc, char** argv) {
              command = line.substr(0,index_to_the_first_space_ya);
          }
          if (cin.eof()) throw cix_exit();
-         getline(cin, filename);
          log << "command " << command << endl;
          const auto& itor = command_map.find (command);
          cix_command cmd = itor == command_map.end()
@@ -143,13 +210,36 @@ int main (int argc, char** argv) {
             case cix_command::GET:
                if (index_to_the_first_space_ya == string::npos)
                {
-                   log << "" << endl;
+                   log << "filepath not specified" << endl;
                }
                else
                {
-                   filename = line.substr(index_to_the_first_space_ya);
+                   filename = line.substr(index_to_the_first_space_ya + 1);
                    cix_get(server, filename);
                }
+               break;
+            case cix_command::PUT:
+                 if (index_to_the_first_space_ya == string::npos)
+                 {
+                     log << "filepath not specified" << endl;
+                 }
+                 else
+                 {
+                     filename = line.substr(index_to_the_first_space_ya + 1);
+                     cix_put(server, filename);
+                 }
+                 break;
+             case cix_command::RM:
+                 if (index_to_the_first_space_ya == string::npos)
+                 {
+                     log << "filepath not specified" << endl;
+                 }
+                 else
+                 {
+                     filename = line.substr(index_to_the_first_space_ya + 1);
+                     cix_rm(server, filename);
+                 }
+                 break;
             default:
                log << command << ": invalid command" << endl;
                break;
