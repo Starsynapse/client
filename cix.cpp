@@ -76,8 +76,15 @@ void cix_get(client_socket& server, string filename)
     log << "received header " << header << endl;
     if (header.command != cix_command::FILEOUT)
     {
-        log << "sent GET, server did not return FILEOUT" << endl;
-        log << "server returned " << header << endl;
+        if (header.command == cix_command::NAK)
+        {
+            log << "error " << strerror(header.nbytes) << endl;
+        }
+        else
+        {
+            log << "sent GET, server did not return FILEOUT" << endl;
+            log << "server returned " << header << endl;
+        }
     }
     else
     {
@@ -137,9 +144,19 @@ void cix_put(client_socket& server, string filename)
     server.recv(&header, sizeof(cix_header));
     if (header.command != cix_command::ACK)
     {
-        log << "the server was mean" << endl;
+        if (header.command == cix_command::NAK)
+        {
+            log << "error " << strerror(header.nbytes) << endl;
+        }
+        else
+        {
+            log << "Unexpected packet " << header << endl;
+        }
     }
-    log << "file successfully transfered" << endl;
+    else
+    {
+        log << "file successfully transfered" << endl;
+    }
     // done
 }
 
@@ -153,7 +170,14 @@ void cix_rm(client_socket& server, string filename)
     server.recv(&header, sizeof(cix_header));
     if (header.command != cix_command::ACK)
     {
-        log << "server didn't do the thing" << endl;
+        if(header.command == cix_command::NAK)
+        {
+            log << "error " << strerror(header.nbytes) << endl;
+        }
+        else
+        {
+            log << "unexpected packet " << header << endl;
+        }
     }
     else
     {
