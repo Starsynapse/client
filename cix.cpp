@@ -1,4 +1,9 @@
-// $Id: cix.cpp,v 1.7 2019-02-07 15:14:37-08 - - $
+// Jordan Leggett jleggett
+// Eduardo Zamora ezamora9
+// cix.cpp
+// cix file
+// CMPS 109
+// Assignment 4
 
 #include <iostream>
 #include <memory>
@@ -94,7 +99,8 @@ void cix_get(client_socket& server, string filename)
         }
         else
         {
-            unique_ptr<char, deleter> buffer { new char[header.nbytes], free};
+            unique_ptr<char, deleter> buffer
+            { new char[header.nbytes], free};
             if (header.nbytes != 0)
             {
                 recv_packet(server, buffer.get(), header.nbytes);
@@ -238,7 +244,8 @@ int main (int argc, char** argv) {
                }
                else
                {
-                   filename = line.substr(index_to_the_first_space_ya + 1);
+                   filename = line.substr
+                           (index_to_the_first_space_ya + 1);
                    cix_get(server, filename);
                }
                break;
@@ -249,7 +256,8 @@ int main (int argc, char** argv) {
                  }
                  else
                  {
-                     filename = line.substr(index_to_the_first_space_ya + 1);
+                     filename = line.substr
+                             (index_to_the_first_space_ya + 1);
                      cix_put(server, filename);
                  }
                  break;
@@ -260,7 +268,8 @@ int main (int argc, char** argv) {
                  }
                  else
                  {
-                     filename = line.substr(index_to_the_first_space_ya + 1);
+                     filename = line.substr
+                             (index_to_the_first_space_ya + 1);
                      cix_rm(server, filename);
                  }
                  break;

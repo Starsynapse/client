@@ -1,4 +1,9 @@
-// $Id: logstream.h,v 1.2 2019-02-21 18:19:49-08 - - $
+// Jordan Leggett jleggett
+// Eduardo Zamora ezamora9
+// logstream.h
+// logstream file
+// CMPS 109
+// Assignment 4
 
 //
 // class logstream

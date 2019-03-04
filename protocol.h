@@ -1,4 +1,9 @@
-// $Id: protocol.h,v 1.6 2019-02-21 18:23:43-08 - - $
+// Jordan Leggett jleggett
+// Eduardo Zamora ezamora9
+// protocol.h
+// protocol file
+// CMPS 109
+// Assignment 3
 
 #ifndef __PROTOCOL__H__
 #define __PROTOCOL__H__

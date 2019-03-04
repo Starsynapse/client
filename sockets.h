@@ -1,4 +1,9 @@
-// $Id: sockets.h,v 1.2 2016-05-09 16:01:56-07 - - $
+// Jordan Leggett jleggett
+// Eduardo Zamora ezamora9
+// main.cpp
+// Implementation for driver main file
+// CMPS 109
+// Assignment 3
 
 #ifndef __SOCKET_H__
 #define __SOCKET_H__

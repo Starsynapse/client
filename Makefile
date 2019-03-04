@@ -1,4 +1,9 @@
-# $Id: Makefile,v 1.12 2019-02-21 18:18:42-08 - - $
+# Jordan Leggett jleggett
+# Eduardo Zamora ezamora9
+# makefile
+# makefile file
+# CMPS 109
+# Assignment 4
 
 MKFILE      = Makefile
 DEPFILE     = ${MKFILE}.dep
